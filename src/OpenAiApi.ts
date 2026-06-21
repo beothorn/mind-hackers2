@@ -1,59 +1,77 @@
 import axios from 'axios';
 
 const openAiUrl = 'https://api.openai.com/v1';
-const engine = 'text-davinci-002';
+export const openAiModel = 'gpt-5.4-mini';
 
-const getCompletionWithSize = (openAiKey: string, query: string, size: number) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
-    "prompt": query,
-    "max_tokens": size,
-    "temperature": 0.9,
-    "top_p": 1,
-    "frequency_penalty": 0,
-    "presence_penalty": 0,
-}, {
-    headers: {
-        'Authorization': `Bearer ${openAiKey}`,
-        'Content-Type': 'application/json'
+type ResponseContent = {
+    type?: string,
+    text?: string,
+};
+
+type ResponseOutput = {
+    content?: ResponseContent[],
+};
+
+type OpenAiResponse = {
+    output_text?: string,
+    output?: ResponseOutput[],
+};
+
+const extractResponseText = (response: OpenAiResponse): string => {
+    if (response.output_text) {
+        return response.output_text.trim();
     }
-}).then((result) => {
-    const text = result.data.choices[0].text.trim();
-    console.log({query, text});
+
+    return response.output
+        ?.flatMap(output => output.content ?? [])
+        .map(content => content.text ?? '')
+        .join('')
+        .trim() ?? '';
+};
+
+const buildTextResponseRequest = (input: string, maxOutputTokens: number) => ({
+    model: openAiModel,
+    input,
+    max_output_tokens: maxOutputTokens,
+    reasoning: { effort: 'low' },
+    text: { verbosity: 'low' },
+});
+
+const requestTextResponse = (openAiKey: string, input: string, maxOutputTokens: number) => axios.post<OpenAiResponse>(
+    `${openAiUrl}/responses`,
+    buildTextResponseRequest(input, maxOutputTokens),
+    {
+        headers: {
+            'Authorization': `Bearer ${openAiKey}`,
+            'Content-Type': 'application/json'
+        }
+    }
+).then((result) => {
+    const text = extractResponseText(result.data);
+    console.log({query: input, text, model: openAiModel});
     return text;
 });
+
+const getCompletionWithSize = (openAiKey: string, query: string, size: number) => requestTextResponse(openAiKey, query, size);
 
 export const getSmallCompletion = (openAiKey: string, query: string) => getCompletionWithSize(openAiKey, query, 30);
 
 export const getCompletion = (openAiKey: string, query: string) => getCompletionWithSize(openAiKey, query, 256);
 
-export const answerQuestion = (openAiKey: string, situation: string, question: string) => axios.post(`${openAiUrl}/engines/${engine}/completions`, {
-    "prompt": `===
+const buildQuestionPrompt = (situation: string, question: string) => `===
 ${situation}
 ===
 From this scene:
 ${question}(yes or no)
-`,
-    "max_tokens": 3,
-    "temperature": 0.9,
-    "top_p": 1,
-    "frequency_penalty": 0,
-    "presence_penalty": 0,
-}, {
-    headers: {
-        'Authorization': `Bearer ${openAiKey}`,
-        'Content-Type': 'application/json'
-    }
-}).then((result) => {
-    const text = result.data.choices[0].text.trim();
-    console.log({query: `===
-${situation}
-===
-From this scene:
-${question}(yes or no)
-`, text});
-    return text.toLocaleLowerCase().includes('yes');
-});
+`;
 
-export const listEngines = (openAiKey: string) => axios.get(`${openAiUrl}/engines`, {
+export const answerQuestion = (openAiKey: string, situation: string, question: string) => {
+    const query = buildQuestionPrompt(situation, question);
+
+    return requestTextResponse(openAiKey, query, 3).then((text) => text.toLocaleLowerCase().includes('yes'));
+};
+
+export const checkOpenAiModel = (openAiKey: string) => axios.get(`${openAiUrl}/models/${openAiModel}`, {
     headers: {
         'Authorization': `Bearer ${openAiKey}`,
         'Content-Type': 'application/json'

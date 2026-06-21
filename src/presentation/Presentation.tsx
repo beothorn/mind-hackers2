@@ -28,33 +28,33 @@ export function Presentation() {
 
     return <>
         <Typography variant="h6" gutterBottom>
-            An experient with gpt-3
+            An experiment with a cost-efficient GPT model
         </Typography>
         <Typography variant="body1" gutterBottom>
             A simulation where you are having dinner with a friend.
         </Typography>
         <Typography variant="body1" gutterBottom>
             There are two goals, get your friend to pay for the dinner (including a good tip) and get a key for the employees only bathroom.
-            There is a fixed list of possible interactions, but you can insert a thought inside the other persons head on each interaction. 
+            There is a fixed list of possible interactions, but you can insert a thought inside the other persons head on each interaction.
             The insertion is a sentence of maximum 5 words and will work only sometimes.
         </Typography>
         <Typography variant="body1" >
-            You will need a key for using the gpt-3 api, as the game runs on your browser.
+            You will need an OpenAI API key, as the game sends Responses API requests from your browser.
         </Typography>
         <Typography variant="body1">
-            If you don't have one, you can get one  <Link href="https://beta.openai.com/" underline="none">here</Link>.
+            If you don't have one, you can get one  <Link href="https://platform.openai.com/api-keys" underline="none">here</Link>.
         </Typography>
         <Typography sx={{marginBottom: '1rem'}} variant="body1">
             And if you want to look at the source code, it is <Link href="https://github.com/beothorn/mind-hackers" underline="none">here</Link>.
         </Typography>
-        <TextField 
+        <TextField
             value={openAiKeyInputValue}
             onChange={handleChange}
-            required size="small" 
-            id="open-ai-key" 
-            label="OpenAi key" 
-            variant="outlined" 
+            required size="small"
+            id="open-ai-key"
+            label="OpenAI key"
+            variant="outlined"
         />
-        <Button sx={{marginLeft: 1}} variant="contained" onClick={updateKey}>Ok</Button>      
+        <Button sx={{marginLeft: 1}} variant="contained" onClick={updateKey}>Ok</Button>
     </>;
 }
