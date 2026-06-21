@@ -3,7 +3,7 @@ import { batch } from 'react-redux'
 
 import type { RootState } from './store'
 
-import { listEngines } from './OpenAiApi'
+import { checkOpenAiModel } from './OpenAiApi'
 
 export type AppScreen = 'testOpenAiToken' | 
   'presentation' | 
@@ -59,7 +59,7 @@ export const actionAddMessage = (key: string) => ({type: 'appState/addMessage', 
 export const actionRemoveMessage = (key: string) => ({type: 'appState/removeMessage', payload: key})
 
 export async function dispatchActionCheckOpenAiKey(dispatch: Dispatch<AnyAction>, openAiKey: string) {
-  listEngines(openAiKey)
+  checkOpenAiModel(openAiKey)
     .then(() => {
       localStorage.setItem('openAiKey', openAiKey);
       return batch(() => {
